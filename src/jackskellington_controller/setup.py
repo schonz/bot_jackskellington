@@ -20,7 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'my_node = jackskellington_controller.my_node:main'
+            'botcontroller = jackskellington_controller.publisher_member_function:main',
+            'servocontroller = jackskellington_controller.subscriber_member_function:main'
+            #'my_node = jackskellington_controller.my_node:main'
         ],
     },
 )
