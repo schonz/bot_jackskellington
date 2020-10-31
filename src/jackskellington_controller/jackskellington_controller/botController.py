@@ -32,6 +32,8 @@ class BotController(Node):
 
         msg = String()
         msg.data = '0:%d' % self.ch0Pos
+        self.publisher.publish(msg)
+        self.get_logger().info(msg.data)
 
 
 def main(args=None):
