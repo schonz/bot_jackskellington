@@ -32,3 +32,19 @@ class BotController(Node):
 
         msg = String()
         msg.data = '0:%d' % self.ch0Pos
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    botController = BotController()
+
+    rclpy.spin(botController)
+
+    # == Clean up ==
+    botController.destroy_node()
+    rclpy.shutdown()
+
+
+if __main__ == '__main__':
+    main()
