@@ -26,7 +26,6 @@ HS300_FREQ = 50 #Hz or 20ms, 20000us
 
 
 class ServoController(Node):
-    10000100
     def __init__(self):
         super().__init__('servo_controller')
         self.subscription = self.create_subscription(
@@ -39,21 +38,32 @@ class ServoController(Node):
         self.pulseStart = 500  #HS300_MAX_PULSE - HS300_MIN_PULSE
 
         # Connect to i2c servo controller
-        self.bus = SMbus(CH_I2C)
-        # Set Mode (Turn on Device)
-        pcaMode1 = 0x51  # 1010001
-        pcaMode2 = 0x03  # xxx11xxx
-        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_MODE1, pcaMode1)
-        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_MODE2, pcaMode2)
-        # Set the prescalar so our channels are at 50Hz
-        prescaleVal = self.getPrescaleValue(HS300_FREQ)
-        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_PRESCALE, [prescaleVal])
+        self.bus = SMBus(CH_I2C)
+        self.initPCA9685()
 
 
     def getPrescaleValue(self, targetFreq):
         prescale = round(PCA_OSC / (PCA_PULSE_LEN * targetFreq) - 1)
         prescale_hex = hex(prescale)
         return prescale_hex
+
+    def initPCA9685(self):
+        # Set Mode (Turn on Device)
+        # start in sleep so we can set prescale on oscillator
+        self.pcaMode1 = 0x31  # 00110001
+        self.pcaMode2 = 0x03  # xxx11xxx
+        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_MODE1, self.pcaMode1)
+        #self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_MODE2, pcaMode2)
+
+        # == Set Prescaler ==
+        # Set the prescaler so our channels are at 50Hz
+        prescaleVal = self.getPrescaleValue(HS300_FREQ)
+        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_PRESCALE, prescaleVal)
+
+        # == wrap up ==
+        # Turn Device back on
+        self.pcaMode1 = self.pcaMode1 | 0x10
+        self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_PRESCALE, prescaleVal)
 
     """
     Listens to ROS topic
@@ -98,10 +108,10 @@ class ServoController(Node):
         self.writeI2C(PCA_I2C_ADDR, PCA_ADDR_CH[ch_servo], values)
 
     def writeI2C(self, i2cAddr, register, value):
-        self.bus.write_i2c_data(i2cAddr, register, value)
+        self.bus.write_i2c_block_data(i2cAddr, register, value)
 
     def readI2C(self, i2cAddr, register, nBytes):
-        msg = self.read_i2c_data(i2cAddr, register, nBytes)
+        msg = self.read_i2c_block_data(i2cAddr, register, nBytes)
         return msg
 
 
