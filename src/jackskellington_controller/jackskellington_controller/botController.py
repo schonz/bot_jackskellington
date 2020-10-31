@@ -21,11 +21,10 @@ class BotController(Node):
 
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-
     def timer_callback(self):
         if self.ch0Pos >= 100:
             self.ch0Dir = -1
-        elif self.ch0pos <= 0:
+        elif self.ch0Pos <= 0:
             self.ch0Dir = 1
 
         self.ch0Pos += self.ch0Dir
