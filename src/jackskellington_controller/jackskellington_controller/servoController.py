@@ -14,7 +14,8 @@ PCA_ADDR_MODE2 = 0x01
 PCA_ADDR_PRESCALE = 0xFE
 PCA_ADDR_READ = 0xE1   # 1110 0001
 PCA_ADDR_WRITE = 0xE0  # 1110 0000
-PCA_PULSE_LEN = 4096
+PCA_PULSE_START = 500
+PCA_PULSE_REZ = 4096
 PCA_OSC = 25000000  # Hz or 0.04us
 PCA_ADDR_CH = [
     0x06,  # 0
@@ -35,8 +36,6 @@ class ServoController(Node):
             self.listener_callback,
             10
         )
-
-        self.pulseStart = 500  #HS300_MAX_PULSE - HS300_MIN_PULSE
 
         # Connect to i2c servo controller
         #self.bus = SMBus(CH_I2C)
@@ -124,10 +123,10 @@ class ServoController(Node):
 
     def setServo(self, ch_servo, position):
         # Convert position (%) to pulse time
-        pulseLen = int((HS300_MAX_PULSE - HS300_MIN_PULSE) * position / 100)
-        pulseLen = int(360 * position / 100)
+        pulseLen = ((HS300_MAX_PULSE - HS300_MIN_PULSE) * position / 100) + HS300_MIN_PULSE
+        pulseCycles = int(pulseLen * PCA_PULSE_REZ / (1 / 50))
         # off time (on time we keep the same)
-        pulseEnd = self.pulseStart + pulseLen
+        pulseEnd = PCA_PULSE_START + pulseCycles
 
         # convert to bits
         byte_on_L = self.pulseStart & 0xFF
