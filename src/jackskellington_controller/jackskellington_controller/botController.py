@@ -14,7 +14,7 @@ class BotController(Node):
 
         self.ch0Pos = 0
         self.ch1Pos = 0
-        timer_period = 0.5  # sec
+        timer_period = 0.2  # sec
         # -- temp --
         self.ch0Dir = 1
         self.ch1Dir = 1
